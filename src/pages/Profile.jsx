@@ -41,13 +41,13 @@ const Profile = () => {
           <div className="relative mb-6">
             <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl" />
             <Avatar className="h-24 w-24 border-2 border-primary/50 relative z-10">
-              <AvatarImage src={user.user_metadata.avatar_url} />
+              <AvatarImage src={user.user_metadata?.avatar_url} />
               <AvatarFallback className="bg-accent text-accent-foreground text-2xl">
                 {user.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
-          <h2 className="text-xl font-bold font-display mb-1">{user.user_metadata.full_name || 'Football Fan'}</h2>
+          <h2 className="text-xl font-bold font-display mb-1">{user.user_metadata?.full_name || 'Football Fan'}</h2>
           <p className="text-muted-foreground text-sm font-mono">{user.email}</p>
         </div>
 

@@ -2,7 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import { syncMatches } from "./scripts/sync.ts";
+import { syncMatches } from "./scripts/sync.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +30,7 @@ async function startServer() {
       console.log("Starting manual sync via API...");
       await syncMatches();
       res.json({ success: true, message: "Sync completed successfully" });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Sync API failed:", error);
       res.status(500).json({ success: false, message: error.message });
     }

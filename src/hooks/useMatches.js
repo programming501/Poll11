@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Match } from '../types';
 
-const MOCK_MATCHES: Match[] = [
+const MOCK_MATCHES = [
   {
     id: 'm1',
     home_team: 'Real Madrid',
@@ -61,7 +60,7 @@ export const useMatches = () => {
         .order('kickoff_time', { ascending: true });
 
       if (error) throw error;
-      return data as Match[];
+      return data;
       */
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

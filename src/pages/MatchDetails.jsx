@@ -15,35 +15,37 @@ import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
 const MatchDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: matches } = useMatches();
   const match = matches?.find((m) => m.id === id);
   
-  const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
+  const [activeTeam, setActiveTeam] = useState('home');
   
   const { data: homePlayers, isLoading: loadingHome } = usePlayers(match?.home_team);
   const { data: awayPlayers, isLoading: loadingAway } = usePlayers(match?.away_team);
-  const { data: voteCounts } = useVotes(id!);
-  const { data: userVotes } = useUserVotes(id!);
+  const { data: voteCounts } = useVotes(id);
+  const { data: userVotes } = useUserVotes(id);
   const castVote = useCastVote();
+
+  if (!match) return <div className="p-8 text-center">Match not found.</div>;
 
   const isVotingClosed = match.voting_closes_at ? new Date() > new Date(match.voting_closes_at) : false;
   const isResultsPublished = match.results_published || match.status === 'finished';
 
-  const handleVote = async (playerId: string, voteType: 'play' | 'bench') => {
+  const handleVote = async (playerId, voteType) => {
     if (isVotingClosed) {
       toast.error('Voting is closed for this match');
       return;
     }
     
     try {
-      await castVote.mutateAsync({ matchId: id!, playerId, voteType });
+      await castVote.mutateAsync({ matchId: id, playerId, voteType });
       toast.success(`Voted ${voteType}!`, {
         className: 'bg-primary text-primary-foreground border-primary/20 neon-glow',
       });
-    } catch (error: any) {
+    } catch (error) {
       // Handle both demo error and Supabase unique constraint error (23505)
       if (error.message === 'ALREADY_VOTED' || error.code === '23505') {
         toast.error('You have already voted for this player', {
@@ -56,8 +58,6 @@ const MatchDetails = () => {
       }
     }
   };
-
-  if (!match) return <div className="p-8 text-center">Match not found.</div>;
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
@@ -145,7 +145,7 @@ const MatchDetails = () => {
   );
 };
 
-const PlayerList = ({ players, isLoading, voteCounts, userVotes, onVote, isVotingClosed, isResultsPublished }: any) => {
+const PlayerList = ({ players, isLoading, voteCounts, userVotes, onVote, isVotingClosed, isResultsPublished }) => {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -158,9 +158,9 @@ const PlayerList = ({ players, isLoading, voteCounts, userVotes, onVote, isVotin
 
   return (
     <div className="space-y-3">
-      {players?.map((player: any) => {
-        const counts = voteCounts?.find((c: any) => c.player_id === player.id);
-        const userVote = userVotes?.find((v: any) => v.player_id === player.id);
+      {players?.map((player) => {
+        const counts = voteCounts?.find((c) => c.player_id === player.id);
+        const userVote = userVotes?.find((v) => v.player_id === player.id);
 
         const total = (counts?.play_count || 0) + (counts?.bench_count || 0);
         const playPercent = total > 0 ? Math.round((counts?.play_count || 0) / total * 100) : 50;

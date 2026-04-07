@@ -33,7 +33,7 @@ export async function syncMatches() {
 
   console.log(`Found ${matches.length} scheduled matches.`);
 
-  const mappedMatches = matches.map((m: any) => {
+  const mappedMatches = matches.map((m) => {
     const kickoffTime = new Date(m.utcDate);
     const votingClosesAt = new Date(kickoffTime.getTime() - 60 * 60 * 1000); // 1 hour before kickoff
     
@@ -59,8 +59,8 @@ export async function syncMatches() {
   }
 
   // Sync players for these teams
-  const teamIds = new Set<number>();
-  matches.forEach((m: any) => {
+  const teamIds = new Set();
+  matches.forEach((m) => {
     teamIds.add(m.homeTeam.id);
     teamIds.add(m.awayTeam.id);
   });
@@ -80,7 +80,7 @@ export async function syncMatches() {
       }
 
       const teamData = await teamResponse.json();
-      const players = teamData.squad.map((p: any) => ({
+      const players = teamData.squad.map((p) => ({
         id: p.id.toString(),
         name: p.name,
         position: p.position || 'N/A',

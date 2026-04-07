@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Player } from '../types';
 
-const MOCK_PLAYERS: Record<string, Player[]> = {
+const MOCK_PLAYERS = {
   'Real Madrid': [
     { id: 'p1', name: 'Vinícius Júnior', position: 'FWD', team_id: 'Real Madrid', team_name: 'Real Madrid' },
     { id: 'p2', name: 'Jude Bellingham', position: 'MID', team_id: 'Real Madrid', team_name: 'Real Madrid' },
@@ -60,7 +59,7 @@ const MOCK_PLAYERS: Record<string, Player[]> = {
   ],
 };
 
-export const usePlayers = (teamName?: string) => {
+export const usePlayers = (teamName) => {
   return useQuery({
     queryKey: ['players', teamName],
     queryFn: async () => {
@@ -80,7 +79,7 @@ export const usePlayers = (teamName?: string) => {
         .eq('team_name', teamName);
 
       if (error) throw error;
-      return data as Player[];
+      return data;
       */
     },
     enabled: !!teamName,

@@ -1,15 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Vote, VoteCounts } from '../types';
 import { useAuth } from '../context/AuthContext';
 
-export const useVotes = (matchId: string) => {
+export const useVotes = (matchId) => {
   return useQuery({
     queryKey: ['votes', matchId],
     queryFn: async () => {
       // Force demo data
       const localVotes = JSON.parse(localStorage.getItem(`demo-votes-${matchId}`) || '[]');
-      const counts: Record<string, { play: number, bench: number }> = {};
+      const counts = {};
       
       // Base mock counts
       const baseCounts = [
@@ -38,7 +37,7 @@ export const useVotes = (matchId: string) => {
       });
 
       // Add local votes
-      localVotes.forEach((v: any) => {
+      localVotes.forEach((v) => {
         if (!counts[v.player_id]) counts[v.player_id] = { play: 0, bench: 0 };
         if (v.vote_type === 'play') counts[v.player_id].play++;
         else counts[v.player_id].bench++;
@@ -48,7 +47,7 @@ export const useVotes = (matchId: string) => {
         player_id: id,
         play_count: c.play,
         bench_count: c.bench
-      })) as VoteCounts[];
+      }));
 
       /*
       if (!import.meta.env.VITE_SUPABASE_URL) {
@@ -61,14 +60,14 @@ export const useVotes = (matchId: string) => {
         .eq('match_id', matchId);
 
       if (error) throw error;
-      return data as VoteCounts[];
+      return data;
       */
     },
     refetchInterval: 1000 * 10, // Poll every 10 seconds
   });
 };
 
-export const useUserVotes = (matchId: string) => {
+export const useUserVotes = (matchId) => {
   const { user } = useAuth();
   return useQuery({
     queryKey: ['user-votes', matchId, user?.id],
@@ -77,7 +76,7 @@ export const useUserVotes = (matchId: string) => {
       const localVotes = JSON.parse(localStorage.getItem(`demo-votes-${matchId}`) || '[]');
       if (!user) return localVotes; // In demo mode, allow voting even if not logged in or use a dummy user
       
-      return localVotes.filter((v: any) => v.user_id === (user?.id || 'demo-user'));
+      return localVotes.filter((v) => v.user_id === (user?.id || 'demo-user'));
       
       /*
       if (!user) return [];
@@ -88,7 +87,7 @@ export const useUserVotes = (matchId: string) => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      return data as Vote[];
+      return data;
       */
     },
     // enabled: !!user, // Disable this check for demo mode to make it "completely functional"
@@ -100,13 +99,13 @@ export const useCastVote = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ matchId, playerId, voteType }: { matchId: string, playerId: string, voteType: 'play' | 'bench' }) => {
+    mutationFn: async ({ matchId, playerId, voteType }) => {
       // Force demo data
       const userId = user?.id || 'demo-user';
       const storageKey = `demo-votes-${matchId}`;
       const localVotes = JSON.parse(localStorage.getItem(storageKey) || '[]');
       
-      const existingIndex = localVotes.findIndex((v: any) => v.player_id === playerId && v.user_id === userId);
+      const existingIndex = localVotes.findIndex((v) => v.player_id === playerId && v.user_id === userId);
       
       if (existingIndex > -1) {
         throw new Error('ALREADY_VOTED');

@@ -23,7 +23,7 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e) => {
     e.preventDefault();
     if (!supabase) {
       toast.error('Supabase is not configured.');
@@ -41,7 +41,7 @@ const Auth = () => {
       if (error) throw error;
       setSubmitted(true);
       toast.success('Check your email for the login link!');
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.message);
     } finally {
       setLoading(false);
