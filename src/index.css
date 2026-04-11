@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -28,38 +28,45 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-pulse-subtle: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulse-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
 }
 
 :root {
-  --background: #0a0e14;
+  --background: #000000;
   --foreground: #ffffff;
   
-  --card: #0f141a;
+  --card: #0a0a0a;
   --card-foreground: #ffffff;
   
-  --popover: #0f141a;
+  --popover: #0a0a0a;
   --popover-foreground: #ffffff;
   
-  --primary: #9cff93;
-  --primary-foreground: #0a0e14;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
   
-  --secondary: #00cffc;
-  --secondary-foreground: #0a0e14;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
   
-  --muted: #1b2028;
-  --muted-foreground: #94a3b8;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1aa;
   
-  --accent: #20262f;
+  --accent: #27272a;
   --accent-foreground: #ffffff;
   
   --destructive: #ff4444;
   --destructive-foreground: #ffffff;
   
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.05);
-  --ring: #9cff93;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #ffffff;
   
-  --radius: 1rem;
+  --radius: 1.5rem;
 }
 
 @layer base {
@@ -69,41 +76,14 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
-  }
 }
 
 .glass {
-  @apply bg-card/60 backdrop-blur-xl border border-white/5;
+  @apply bg-card/50 backdrop-blur-xl border border-white/5;
 }
 
 .neon-glow {
-  box-shadow: 0 0 20px rgba(156, 255, 147, 0.15);
-}
-
-.neon-glow-blue {
-  box-shadow: 0 0 20px rgba(0, 207, 252, 0.15);
-}
-
-.match-moment-gradient {
-  background: linear-gradient(135deg, #0f141a 0%, #0f141a 50%, rgba(156, 255, 147, 0.05) 100%);
-}
-
-.pulse-live {
-  @apply relative flex h-2 w-2;
-}
-
-.pulse-live::after {
-  @apply absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 content-[''];
-}
-
-.pulse-live::before {
-  @apply relative inline-flex h-2 w-2 rounded-full bg-primary content-[''];
-}
-
-.vote-bar-transition {
-  @apply transition-all duration-500 ease-out;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 .scrollbar-hide::-webkit-scrollbar {

@@ -1,86 +1,151 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useMatches } from '../hooks/useMatches';
-import { Badge } from '@/components/ui/badge';
+import { usePlayers } from '../hooks/usePlayers';
+import { useResults } from '../hooks/useResults';
+import { useCountdown } from '../hooks/useCountdown';
+import SponsorSection from '../components/SponsorSection';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Calendar, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Lock, Timer, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Results = () => {
-  const { data: matches, isLoading } = useMatches();
-  const finishedMatches = matches?.filter(m => m.status === 'finished' || m.results_published);
+  const { id } = useParams();
+  const { data: matches } = useMatches();
+  const match = matches?.find(m => m.id === id);
+  
+  const { data: players, isLoading: loadingPlayers } = usePlayers(id);
+  const { data: results, isLoading: loadingResults } = useResults(id);
+  
+  const votingCloses = match ? new Date(match.voting_closes_at) : null;
+  const countdown = useCountdown(votingCloses);
+  const now = new Date();
+  
+  const isLocked = votingCloses && now < votingCloses;
+
+  if (!match && matches) return <div className="p-8 text-center">Match not found.</div>;
+  if (!match) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
-      <div className="max-w-2xl mx-auto p-4 pb-24">
-        <header className="flex items-center justify-between mb-12 pt-8 sticky top-0 z-50 glass rounded-2xl px-6 py-4 mt-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary p-2.5 rounded-xl neon-glow">
-              <CheckCircle2 className="text-primary-foreground w-6 h-6" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight font-display">Fan Results</h1>
+    <div className="min-h-screen bg-background pb-24">
+      <header className="px-6 pt-12 pb-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="icon" asChild className="rounded-xl bg-secondary/50">
+            <Link to="/">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
+          <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-full">
+            <TrendingUp className="w-3.5 h-3.5 opacity-40" />
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Fan Lineup</span>
           </div>
-        </header>
-
-        <div className="space-y-8">
-          <div className="flex items-center justify-between px-2">
-            <h2 className="text-xl font-semibold flex items-center gap-3 font-display">
-              <Trophy className="w-5 h-5 text-primary" />
-              Published Voting
-            </h2>
-          </div>
-
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 w-full rounded-3xl bg-card/50" />
-            ))
-          ) : !finishedMatches || finishedMatches.length === 0 ? (
-            <div className="text-center py-20 glass rounded-3xl border-dashed border-white/10">
-              <p className="text-muted-foreground font-medium">No published results yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-6">
-              {finishedMatches.map((match) => (
-                <Link key={match.id} to={`/match/${match.id}`} className="block group">
-                  <div className="match-moment-gradient p-6 rounded-3xl border border-white/5 hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-mono">
-                        Results Ready
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4 sm:gap-8 mt-4">
-                      <div className="flex flex-col items-center gap-3 sm:gap-4 flex-1">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white/5 flex items-center justify-center font-bold text-xl sm:text-2xl border border-white/10 group-hover:border-primary/20 transition-colors">
-                          {match.home_team.charAt(0)}
-                        </div>
-                        <span className="text-sm sm:text-base font-bold text-center font-display group-hover:text-primary transition-colors line-clamp-1">{match.home_team}</span>
-                      </div>
-                      
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="h-px w-6 sm:w-8 bg-white/10" />
-                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">VS</span>
-                        <div className="h-px w-6 sm:w-8 bg-white/10" />
-                      </div>
-
-                      <div className="flex flex-col items-center gap-3 sm:gap-4 flex-1">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white/5 flex items-center justify-center font-bold text-xl sm:text-2xl border border-white/10 group-hover:border-primary/20 transition-colors">
-                          {match.away_team.charAt(0)}
-                        </div>
-                        <span className="text-sm sm:text-base font-bold text-center font-display group-hover:text-primary transition-colors line-clamp-1">{match.away_team}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-white/40 group-hover:text-primary/60 transition-colors">
-                      <span>View fan lineup results</span>
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
+
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black tracking-tighter leading-none">
+            {match.home_team} <span className="opacity-20 italic">vs</span> {match.away_team}
+          </h1>
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
+            {format(new Date(match.kickoff_time), 'EEEE, dd MMMM')}
+          </p>
+        </div>
+      </header>
+
+      <main className="px-6 space-y-12">
+        {isLocked ? (
+          <div className="py-20 text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="bg-primary/10 p-8 rounded-[2.5rem] relative">
+                <Lock className="w-16 h-16 text-primary" />
+                <div className="absolute -top-2 -right-2 bg-primary w-6 h-6 rounded-full flex items-center justify-center animate-pulse">
+                  <Timer className="w-3 h-3 text-primary-foreground" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black tracking-tight">Results Locked</h3>
+              <p className="text-muted-foreground text-sm font-medium max-w-[240px] mx-auto">
+                Lineup percentages are revealed 1 hour before kickoff.
+              </p>
+            </div>
+            {countdown && (
+              <div className="inline-flex items-center gap-4 px-6 py-3 bg-secondary/30 rounded-2xl border border-white/5">
+                <div className="text-center">
+                  <span className="block text-xl font-black tracking-tighter">{countdown.hours}</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest opacity-30">Hrs</span>
+                </div>
+                <div className="w-px h-4 bg-white/10" />
+                <div className="text-center">
+                  <span className="block text-xl font-black tracking-tighter">{countdown.minutes}</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest opacity-30">Min</span>
+                </div>
+                <div className="w-px h-4 bg-white/10" />
+                <div className="text-center">
+                  <span className="block text-xl font-black tracking-tighter">{countdown.seconds}</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest opacity-30">Sec</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-10">
+            <TeamResults 
+              teamName={match.home_team} 
+              players={players?.filter(p => p.team_name === match.home_team)} 
+              results={results} 
+              isLoading={loadingPlayers || loadingResults}
+            />
+            <TeamResults 
+              teamName={match.away_team} 
+              players={players?.filter(p => p.team_name === match.away_team)} 
+              results={results} 
+              isLoading={loadingPlayers || loadingResults}
+            />
+          </div>
+        )}
+
+        <SponsorSection />
+      </main>
+    </div>
+  );
+};
+
+const TeamResults = ({ teamName, players, results, isLoading }) => {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-black text-primary text-xs">
+          {teamName.charAt(0)}
+        </div>
+        <h3 className="text-xl font-black tracking-tight">{teamName}</h3>
+      </div>
+
+      <div className="space-y-4">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-2xl bg-secondary/30" />
+          ))
+        ) : (
+          players?.map(player => {
+            const result = results?.find(r => r.player_id === player.id);
+            const percentage = result ? Math.round(result.play_percentage) : 0;
+            
+            return (
+              <div key={player.id} className="space-y-2">
+                <div className="flex justify-between items-end px-1">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold tracking-tight">{player.name}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">{player.position}</span>
+                  </div>
+                  <span className="text-xs font-black font-mono text-primary">{percentage}%</span>
+                </div>
+                <Progress value={percentage} className="h-2 bg-secondary/50" indicatorClassName="bg-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]" />
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

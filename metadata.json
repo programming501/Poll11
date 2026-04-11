@@ -1,5 +1,5 @@
 {
-  "name": "FootPoll",
-  "description": "A football fan voting platform where fans decide the starting lineup: Play or Bench.",
+  "name": "Poll 11",
+  "description": "Fans vote on a team's Starting 11. Results are high-stakes, hidden until the window closes, and revealed only as percentages.",
   "requestFramePermissions": []
 }
