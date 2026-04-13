@@ -1,118 +1,116 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Trophy, Mail, CheckCircle2, Loader2 } from 'lucide-react';
+import { Trophy, Mail, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'sent'
+  const [loading, setLoading] = useState(false);
+  const { signInWithMagicLink, signInAsGuest } = useAuth();
+  const navigate = useNavigate();
 
-  const handleMagicLink = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!supabase) {
-      toast.error('Supabase is not configured.');
+    if (!email) {
+      toast.error('Please enter your email');
       return;
     }
-    
-    setStatus('loading');
+
+    setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
+      const { error } = await signInWithMagicLink(email);
       if (error) throw error;
-      setStatus('sent');
-      toast.success('Check your email for the login link!');
+      toast.success('Magic link sent! Check your email.');
     } catch (error) {
-      toast.error(error.message);
-      setStatus('idle');
+      toast.error(error.message || 'Failed to send magic link');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (status === 'sent') {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <Card className="w-full max-w-md border-none shadow-none bg-transparent text-center">
-          <CardHeader className="space-y-4">
-            <div className="flex justify-center">
-              <div className="bg-primary/10 p-4 rounded-full">
-                <CheckCircle2 className="text-primary w-12 h-12" />
-              </div>
-            </div>
-            <CardTitle className="text-3xl font-bold tracking-tight">Check your email</CardTitle>
-            <CardDescription className="text-lg">
-              We sent a login link to <span className="font-bold text-foreground">{email}</span>.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="link" 
-              className="text-muted-foreground"
-              onClick={() => setStatus('idle')}
-            >
-              Try a different email
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleGuestLogin = () => {
+    signInAsGuest();
+    navigate('/');
+    toast.success('Logged in as Guest');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-6">
-            <div className="bg-primary p-3 rounded-2xl shadow-lg shadow-primary/20">
-              <Trophy className="text-primary-foreground w-8 h-8" />
-            </div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md space-y-12">
+        {/* Logo & Header */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="bg-primary p-4 rounded-[2rem] shadow-2xl shadow-primary/40 animate-in zoom-in duration-1000">
+            <Trophy className="text-primary-foreground w-12 h-12" />
           </div>
-          <h1 className="text-4xl font-black tracking-tighter">Poll 11</h1>
-          <p className="text-muted-foreground font-medium">Vote for your team's starting XI</p>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-display font-black tracking-tighter leading-none neon-text">
+              POLL 11
+            </h1>
+            <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">
+              The Voice of the Game
+            </p>
+          </div>
         </div>
 
-        <Card className="border-none shadow-none bg-transparent">
-          <CardContent className="p-0">
-            <form onSubmit={handleMagicLink} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest opacity-50">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 opacity-20" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    className="pl-10 h-12 bg-secondary/50 border-none rounded-xl focus-visible:ring-primary/30"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required 
-                    disabled={status === 'loading'}
-                  />
-                </div>
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full h-12 rounded-xl font-bold text-base transition-all active:scale-[0.98]" 
-                disabled={status === 'loading'}
-              >
-                {status === 'loading' ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending link...
-                  </>
-                ) : (
-                  'Send login link'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Login Form */}
+        <div className="vibe-card p-8 space-y-8">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-display font-black tracking-tight">WELCOME BACK</h2>
+            <p className="text-slate-400 text-sm font-medium">Enter your email to receive a magic link</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
+              <Input
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-14 pl-12 rounded-2xl bg-slate-900/50 border-white/5 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-display font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] transition-all"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Send Magic Link
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/5"></div>
+            </div>
+            <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-black">
+              <span className="bg-slate-900 px-4 text-slate-500">Or continue with</span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={handleGuestLogin}
+            className="w-full h-14 rounded-2xl border-white/10 hover:bg-white/5 font-display font-black uppercase tracking-widest text-xs transition-all"
+          >
+            Guest Access
+          </Button>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em]">
+          By continuing, you agree to our Terms of Service
+        </p>
       </div>
     </div>
   );

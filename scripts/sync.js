@@ -3,11 +3,12 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 
 // Load environment variables
-dotenv.config({ path: resolve(process.cwd(), '.env') });
+dotenv.config({ override: true });
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const footballApiKey = process.env.FOOTBALL_DATA_API_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const footballApiKey = process.env.FOOTBALL_DATA_API_KEY?.replace(/^"|"$/g, '').trim();
+console.log('Loaded API Key (first 5):', footballApiKey?.substring(0, 5));
 
 if (!supabaseUrl || !supabaseServiceKey || !footballApiKey) {
   console.error('Missing environment variables. Check .env');
@@ -18,6 +19,12 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Helper to create a deterministic UUID from an integer ID
+function toUUID(id, prefix = '0') {
+  const hex = id.toString(16).padStart(12, '0');
+  return `00000000-0000-0000-0000-${hex}`;
+}
+
 async function syncMatches() {
   console.log('Fetching matches for Premier League...');
   
@@ -26,7 +33,10 @@ async function syncMatches() {
       headers: { 'X-Auth-Token': footballApiKey },
     });
 
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
 
     const data = await response.json();
     const matches = data.matches;
@@ -38,12 +48,13 @@ async function syncMatches() {
       const votingClosesAt = new Date(kickoffTime.getTime() - 60 * 60 * 1000); // 1 hour before
       
       return {
-        id: m.id.toString(),
+        id: toUUID(m.id),
         home_team: m.homeTeam.name,
         away_team: m.awayTeam.name,
-        kickoff_time: m.utcDate,
+        match_date: m.utcDate,
         voting_closes_at: votingClosesAt.toISOString(),
-        status: 'upcoming'
+        status: 'upcoming',
+        competition: 'Premier League'
       };
     });
 
@@ -55,16 +66,16 @@ async function syncMatches() {
     console.log('Matches synced successfully.');
 
     // Sync Players for each team
-    const teamIds = new Set();
+    const teams = new Map();
     matches.forEach(m => {
-      teamIds.add(m.homeTeam.id);
-      teamIds.add(m.awayTeam.id);
+      teams.set(m.homeTeam.id, m.homeTeam.name);
+      teams.set(m.awayTeam.id, m.awayTeam.name);
     });
 
-    console.log(`Syncing rosters for ${teamIds.size} teams...`);
+    console.log(`Syncing rosters for ${teams.size} teams...`);
 
-    for (const teamId of teamIds) {
-      console.log(`Fetching roster for team ${teamId}...`);
+    for (const [teamId, teamName] of teams) {
+      console.log(`Fetching roster for ${teamName} (ID: ${teamId})...`);
       
       const teamResponse = await fetch(`https://api.football-data.org/v4/teams/${teamId}`, {
         headers: { 'X-Auth-Token': footballApiKey },
@@ -77,10 +88,10 @@ async function syncMatches() {
 
       const teamData = await teamResponse.json();
       const players = teamData.squad.map(p => ({
-        id: `${teamId}-${p.id}`, // Unique per team/player combo
+        id: toUUID(p.id),
         name: p.name,
         position: p.position || 'N/A',
-        team_name: teamData.name
+        team: teamData.name
       }));
 
       const { error: playerError } = await supabase
@@ -90,7 +101,6 @@ async function syncMatches() {
       if (playerError) console.error(`Error syncing players for ${teamData.name}:`, playerError);
       else console.log(`Synced ${players.length} players for ${teamData.name}`);
 
-      // Respect rate limits: 10 req/min -> 6s minimum, user requested 7s
       await sleep(7000);
     }
 

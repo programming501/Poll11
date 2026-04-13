@@ -1,6 +1,6 @@
-# Supabase Setup Guide for FootPoll
+# Supabase Setup Guide for Poll 11
 
-To make FootPoll fully functional with real-time voting and authentication, follow these steps to set up your Supabase project.
+To make Poll 11 fully functional with real-time voting and authentication, follow these steps to set up your Supabase project.
 
 ## 1. Create a Supabase Project
 Go to [supabase.com](https://supabase.com) and create a new project.
@@ -9,9 +9,6 @@ Go to [supabase.com](https://supabase.com) and create a new project.
 Copy and paste the following SQL into the **SQL Editor** in your Supabase dashboard and run it. This will create the necessary tables, views, and security policies.
 
 ```sql
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- 1. Create Matches Table
 CREATE TABLE matches (
   id TEXT PRIMARY KEY,
@@ -19,7 +16,8 @@ CREATE TABLE matches (
   away_team TEXT NOT NULL,
   kickoff_time TIMESTAMPTZ NOT NULL,
   voting_closes_at TIMESTAMPTZ NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('upcoming', 'live', 'finished'))
+  status TEXT DEFAULT 'upcoming',
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 2. Create Players Table
@@ -27,52 +25,66 @@ CREATE TABLE players (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   position TEXT NOT NULL,
-  team_id TEXT NOT NULL,
-  team_name TEXT NOT NULL
+  team_name TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 3. Create Votes Table
 CREATE TABLE votes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id BIGSERIAL PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   match_id TEXT REFERENCES matches(id) ON DELETE CASCADE,
   player_id TEXT REFERENCES players(id) ON DELETE CASCADE,
-  vote_type TEXT NOT NULL CHECK (vote_type IN ('play', 'bench')),
-  created_at TIMESTAMPTZ DEFAULT now(),
+  vote_type TEXT CHECK (vote_type IN ('play', 'bench')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, match_id, player_id)
 );
 
--- 4. Create Vote Counts View
-CREATE OR REPLACE VIEW vote_counts AS
-SELECT 
-  match_id,
-  player_id,
-  COUNT(*) FILTER (WHERE vote_type = 'play') as play_count,
-  COUNT(*) FILTER (WHERE vote_type = 'bench') as bench_count
-FROM votes
-GROUP BY match_id, player_id;
+-- 4. Create Match Results Table (for snapshots)
+CREATE TABLE match_results (
+  id BIGSERIAL PRIMARY KEY,
+  match_id TEXT REFERENCES matches(id) ON DELETE CASCADE,
+  player_id TEXT REFERENCES players(id) ON DELETE CASCADE,
+  play_percentage FLOAT NOT NULL,
+  total_votes INTEGER NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 5. Enable Row Level Security (RLS)
+-- 5. Create Sponsors Table
+CREATE TABLE sponsors (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  image_url TEXT NOT NULL,
+  link_url TEXT NOT NULL,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Create Live Results View
+CREATE OR REPLACE VIEW match_results_view AS
+SELECT 
+  v.match_id,
+  v.player_id,
+  COUNT(*) FILTER (WHERE v.vote_type = 'play')::FLOAT / NULLIF(COUNT(*), 0)::FLOAT * 100 as play_percentage,
+  COUNT(*) as total_votes
+FROM votes v
+GROUP BY v.match_id, v.player_id;
+
+-- 7. Enable Row Level Security (RLS)
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE players ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE match_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sponsors ENABLE ROW LEVEL SECURITY;
 
--- 6. Define Policies
--- Matches: Everyone can read
-CREATE POLICY "Allow public read on matches" ON matches FOR SELECT USING (true);
+-- 8. Define Policies
+CREATE POLICY "Public read matches" ON matches FOR SELECT USING (true);
+CREATE POLICY "Public read players" ON players FOR SELECT USING (true);
+CREATE POLICY "Public read results" ON match_results FOR SELECT USING (true);
+CREATE POLICY "Public read sponsors" ON sponsors FOR SELECT USING (active = true);
 
--- Players: Everyone can read
-CREATE POLICY "Allow public read on players" ON players FOR SELECT USING (true);
-
--- Votes: Users can read their own votes
-CREATE POLICY "Allow users to read their own votes" ON votes FOR SELECT USING (auth.uid() = user_id);
-
--- Votes: Authenticated users can cast/update their own votes
-CREATE POLICY "Allow authenticated users to cast votes" ON votes FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow authenticated users to update their own votes" ON votes FOR UPDATE USING (auth.uid() = user_id);
-
--- 7. Seed Initial Data (Optional)
--- You can add some initial matches and players here or use the Supabase UI.
+CREATE POLICY "Users can read own votes" ON votes FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own votes" ON votes FOR INSERT WITH CHECK (auth.uid() = user_id);
 ```
 
 ## 3. Configure Environment Variables

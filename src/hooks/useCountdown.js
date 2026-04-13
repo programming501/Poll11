@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const useCountdown = (targetDate) => {
   const [timeLeft, setTimeLeft] = useState(null);
+  const targetRef = useRef(targetDate);
 
   useEffect(() => {
-    if (!targetDate) return;
+    // Only update if the target date actually changes (as a string or number)
+    const targetTime = targetDate ? new Date(targetDate).getTime() : null;
+    const currentRefTime = targetRef.current ? new Date(targetRef.current).getTime() : null;
+
+    if (targetTime === currentRefTime && timeLeft !== null) return;
+    targetRef.current = targetDate;
+
+    if (!targetDate) {
+      setTimeLeft(null);
+      return;
+    }
 
     const calculateTimeLeft = () => {
       const difference = new Date(targetDate) - new Date();
@@ -24,6 +35,8 @@ export const useCountdown = (targetDate) => {
 
     setTimeLeft(calculateTimeLeft());
 
+    // Timer disabled as per request
+    /*
     const timer = setInterval(() => {
       const updatedTime = calculateTimeLeft();
       setTimeLeft(updatedTime);
@@ -31,7 +44,8 @@ export const useCountdown = (targetDate) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+    */
+  }, [targetDate]); // We still keep targetDate but the internal logic handles the reference issue
 
   return timeLeft;
 };

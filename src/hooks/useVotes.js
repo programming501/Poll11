@@ -8,7 +8,11 @@ export const useUserVotes = (matchId) => {
   return useQuery({
     queryKey: ['user-votes', matchId, user?.id],
     queryFn: async () => {
-      if (!supabase || !matchId || !user) return [];
+      if (!supabase || !matchId || !user) {
+        // Demo mode: read from local storage
+        const localVotes = JSON.parse(localStorage.getItem(`votes-${matchId}`) || '[]');
+        return localVotes;
+      }
       
       const { data, error } = await supabase
         .from('votes')
@@ -29,8 +33,21 @@ export const useCastVote = () => {
 
   return useMutation({
     mutationFn: async ({ matchId, playerId, voteType }) => {
-      if (!supabase) throw new Error('Supabase not configured');
       if (!user) throw new Error('Must be logged in to vote');
+
+      if (!supabase) {
+        // Demo mode: save to local storage
+        const key = `votes-${matchId}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        if (existing.some(v => v.player_id === playerId)) {
+          throw new Error('ALREADY_VOTED');
+        }
+
+        const newVotes = [...existing, { player_id: playerId, vote_type: voteType }];
+        localStorage.setItem(key, JSON.stringify(newVotes));
+        return { success: true };
+      }
 
       const { error } = await supabase
         .from('votes')

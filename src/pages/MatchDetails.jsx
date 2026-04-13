@@ -72,7 +72,7 @@ const MatchDetails = () => {
             <h1 className="text-xl font-bold tracking-tight font-display">Match Lineup</h1>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-primary font-mono uppercase tracking-[0.2em]">
-                {format(new Date(match.kickoff_time), 'MMM d, HH:mm')}
+                {format(new Date(match.match_date), 'MMM d, HH:mm')}
               </span>
               {isVotingClosed && (
                 <Badge variant="destructive" className="text-[8px] uppercase tracking-widest h-4 px-1.5 bg-destructive/20 text-destructive border-destructive/30">

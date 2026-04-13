@@ -9,86 +9,88 @@ import { Badge } from '@/components/ui/badge';
 import { Timer, Trophy, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const MatchCard = ({ match }) => {
-  const kickoff = new Date(match.kickoff_time);
+const MatchCard = ({ match, hideButton = false }) => {
+  const kickoff = new Date(match.match_date);
   const votingCloses = new Date(match.voting_closes_at);
   const now = new Date();
   
-  const countdown = useCountdown(votingCloses);
+  const countdown = useCountdown(match.voting_closes_at);
   
   const isLocked = now < new Date(kickoff.getTime() - 3 * 60 * 60 * 1000);
   const isClosed = now >= votingCloses;
   const isLive = !isLocked && !isClosed;
 
   return (
-    <Card className="overflow-hidden border-none bg-secondary/30 hover:bg-secondary/50 transition-all duration-300 rounded-3xl group">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Trophy className="w-4 h-4 text-primary" />
+    <Card className="vibe-card group">
+      <CardContent className="p-8">
+        <div className="flex justify-between items-start mb-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-xl border border-primary/20">
+              <img 
+                src="https://www.premierleague.com/resources/rebrand/v7.153.2/i/elements/pl-main-logo.png" 
+                alt="PL" 
+                className="w-5 h-5 object-contain"
+                referrerPolicy="no-referrer"
+              />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Premier League</span>
+            <span className="text-[10px] font-display font-black uppercase tracking-[0.2em] opacity-40">Premier League</span>
           </div>
-          <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 font-mono text-[10px]">
+          <Badge variant="outline" className="border-white/10 text-foreground bg-white/5 font-mono text-[10px] px-3 py-1 rounded-full">
             {format(kickoff, 'dd MMM, HH:mm', { locale: enIN })}
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <div className="flex flex-col items-center gap-3 flex-1">
-            <div className="w-16 h-16 rounded-2xl bg-background flex items-center justify-center text-2xl font-black shadow-inner">
+        <div className="flex items-center justify-between gap-6 mb-10">
+          <div className="flex flex-col items-center gap-4 flex-1">
+            <div className="w-20 h-20 rounded-[2rem] bg-slate-800/50 flex items-center justify-center text-3xl font-display font-black shadow-inner border border-white/5 group-hover:border-primary/30 transition-colors">
               {match.home_team.charAt(0)}
             </div>
-            <span className="text-sm font-bold text-center line-clamp-1">{match.home_team}</span>
+            <span className="text-sm font-bold text-center line-clamp-1 tracking-tight">{match.home_team}</span>
           </div>
           
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] font-black opacity-20 italic">VS</span>
+          <div className="flex flex-col items-center">
+            <div className="w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+            <span className="text-[10px] font-display font-black opacity-20 italic my-2">VS</span>
+            <div className="w-px h-8 bg-gradient-to-t from-transparent via-white/10 to-transparent" />
           </div>
 
-          <div className="flex flex-col items-center gap-3 flex-1">
-            <div className="w-16 h-16 rounded-2xl bg-background flex items-center justify-center text-2xl font-black shadow-inner">
+          <div className="flex flex-col items-center gap-4 flex-1">
+            <div className="w-20 h-20 rounded-[2rem] bg-slate-800/50 flex items-center justify-center text-3xl font-display font-black shadow-inner border border-white/5 group-hover:border-primary/30 transition-colors">
               {match.away_team.charAt(0)}
             </div>
-            <span className="text-sm font-bold text-center line-clamp-1">{match.away_team}</span>
+            <span className="text-sm font-bold text-center line-clamp-1 tracking-tight">{match.away_team}</span>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {isLive && countdown && (
-            <div className="flex items-center justify-center gap-2 text-primary animate-pulse">
-              <Timer className="w-4 h-4" />
-              <span className="text-xs font-bold font-mono">
-                {countdown.hours}h {countdown.minutes}m {countdown.seconds}s left
-              </span>
-            </div>
-          )}
-
-          {isLocked && (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <Lock className="w-4 h-4" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">Starts 3h before kickoff</span>
-            </div>
-          )}
-
-          <Button 
-            asChild 
-            className={cn(
-              "w-full h-12 rounded-2xl font-bold transition-all active:scale-[0.98]",
-              isClosed ? "bg-secondary text-foreground hover:bg-secondary/80" : "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+        {!hideButton && (
+          <div className="space-y-6">
+            {isLocked && (
+              <div className="flex items-center justify-center gap-2 text-slate-500">
+                <Lock className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-display font-black uppercase tracking-[0.2em]">Starts 3h before kickoff</span>
+              </div>
             )}
-            disabled={isLocked}
-          >
-            {isClosed ? (
-              <Link to={`/results/${match.id}`}>View Results</Link>
-            ) : isLocked ? (
-              <span>Locked</span>
-            ) : (
-              <Link to={`/match/${match.id}`}>Vote Now</Link>
-            )}
-          </Button>
-        </div>
+
+            <Button 
+              asChild 
+              className={cn(
+                "w-full h-14 rounded-[1.8rem] font-display font-black uppercase tracking-[0.2em] text-[10px] transition-all active:scale-[0.98]",
+                isClosed 
+                  ? "bg-slate-800 text-foreground hover:bg-white/10 border border-white/5" 
+                  : "bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/40"
+              )}
+              disabled={isLocked}
+            >
+              {isClosed ? (
+                <Link to={`/results/${match.id}`}>View Results</Link>
+              ) : isLocked ? (
+                <span className="opacity-50">Locked</span>
+              ) : (
+                <Link to={`/match/${match.id}`}>Vote Now</Link>
+              )}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
