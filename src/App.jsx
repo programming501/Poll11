@@ -34,9 +34,8 @@ const ProtectedRoute = ({ children }) => {
 
 const BottomNav = () => {
   const location = useLocation();
-  const { user } = useAuth();
   
-  if (!user || location.pathname === '/login') return null;
+  if (location.pathname === '/login') return null;
 
   const navItems = [
     { icon: HomeIcon, label: 'Home', path: '/' },
@@ -75,7 +74,7 @@ function App() {
           <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+              <Route path="/" element={<Home />} />
               <Route path="/match/:id" element={<ProtectedRoute><Match /></ProtectedRoute>} />
               <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
               <Route path="/results" element={<ProtectedRoute><ResultsList /></ProtectedRoute>} />

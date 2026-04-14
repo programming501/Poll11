@@ -11,20 +11,19 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!supabase) {
-      setUser(GUEST_USER);
       setLoading(false);
       return;
     }
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? GUEST_USER);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? GUEST_USER);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
@@ -34,19 +33,17 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     if (supabase) {
       await supabase.auth.signOut();
-    } else {
-      setUser(null);
     }
+    setUser(null);
   };
 
   const signInAsGuest = () => {
-    setUser({ id: 'demo-user', email: 'guest@example.com' });
+    setUser(GUEST_USER);
   };
 
   const signInWithMagicLink = async (email) => {
     if (!supabase) {
-      setUser(GUEST_USER);
-      return { error: null };
+      return { error: new Error('Supabase is not configured. Please check your environment variables.') };
     }
     return await supabase.auth.signInWithOtp({
       email,
