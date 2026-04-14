@@ -5,14 +5,16 @@ import { toast } from 'sonner';
 
 export const useUserVotes = (matchId) => {
   const { user } = useAuth();
+  
   return useQuery({
     queryKey: ['user-votes', matchId, user?.id],
     queryFn: async () => {
-      if (!supabase || !matchId || !user) {
-        // Demo mode: read from local storage
-        const localVotes = JSON.parse(localStorage.getItem(`votes-${matchId}`) || '[]');
-        return localVotes;
+      // FIREWALL: If no user or if it's the demo-user string, don't call Supabase
+      if (!user || user.id === 'demo-user') {
+        return []; 
       }
+
+      if (!supabase || !matchId) return [];
       
       const { data, error } = await supabase
         .from('votes')
@@ -23,7 +25,8 @@ export const useUserVotes = (matchId) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!matchId && !!user,
+    // Only enable query if matchId exists AND user is NOT a demo user
+    enabled: !!matchId && !!user && user.id !== 'demo-user',
   });
 };
 
@@ -33,21 +36,12 @@ export const useCastVote = () => {
 
   return useMutation({
     mutationFn: async ({ matchId, playerId, voteType }) => {
-      if (!user) throw new Error('Must be logged in to vote');
-
-      if (!supabase) {
-        // Demo mode: save to local storage
-        const key = `votes-${matchId}`;
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        
-        if (existing.some(v => v.player_id === playerId)) {
-          throw new Error('ALREADY_VOTED');
-        }
-
-        const newVotes = [...existing, { player_id: playerId, vote_type: voteType }];
-        localStorage.setItem(key, JSON.stringify(newVotes));
-        return { success: true };
+      // This is the safety check for the backend mutation
+      if (!user || user.id === 'demo-user') {
+        throw new Error('AUTH_REQUIRED');
       }
+
+      if (!supabase) return { success: true };
 
       const { error } = await supabase
         .from('votes')
@@ -59,16 +53,15 @@ export const useCastVote = () => {
         });
 
       if (error) {
-        if (error.code === '23505') {
-          throw new Error('ALREADY_VOTED');
-        }
+        if (error.code === '23505') throw new Error('ALREADY_VOTED');
         throw error;
       }
       
       return { success: true };
     },
     onMutate: async ({ matchId, playerId, voteType }) => {
-      // Optimistic update
+      if (!user || user.id === 'demo-user') return;
+
       await queryClient.cancelQueries({ queryKey: ['user-votes', matchId, user?.id] });
       const previousVotes = queryClient.getQueryData(['user-votes', matchId, user?.id]);
       
@@ -80,16 +73,21 @@ export const useCastVote = () => {
       return { previousVotes };
     },
     onError: (err, variables, context) => {
-      queryClient.setQueryData(['user-votes', variables.matchId, user?.id], context.previousVotes);
+      queryClient.setQueryData(['user-votes', variables.matchId, user?.id], context?.previousVotes);
       
+      // Handled in handleVote component logic, but added here for safety
       if (err.message === 'ALREADY_VOTED') {
         toast.error('You have already cast your vote for this player.');
+      } else if (err.message === 'AUTH_REQUIRED') {
+        toast.error('Please login to vote!');
       } else {
         toast.error('Failed to cast vote. Try again.');
       }
     },
     onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['user-votes', variables.matchId, user?.id] });
+      if (user?.id !== 'demo-user') {
+        queryClient.invalidateQueries({ queryKey: ['user-votes', variables.matchId, user?.id] });
+      }
     },
   });
 };

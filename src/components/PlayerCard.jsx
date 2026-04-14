@@ -16,7 +16,7 @@ const PlayerCard = ({ player, userVote, onVote, disabled }) => {
       <div className="flex items-center gap-4 sm:gap-5 min-w-0">
         <div className="relative flex-shrink-0">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-background flex items-center justify-center text-[9px] sm:text-[10px] font-display font-black opacity-40 border border-white/5 group-hover:border-primary/30 transition-colors">
-            {player.position.substring(0, 3).toUpperCase()}
+            <span>{player.position?.substring(0, 3) || 'N/A'}</span>
           </div>
           {hasVoted && (
             <div className={cn(

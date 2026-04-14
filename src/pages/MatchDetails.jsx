@@ -34,31 +34,36 @@ const MatchDetails = () => {
   const isVotingClosed = match.voting_closes_at ? new Date() > new Date(match.voting_closes_at) : false;
   const isResultsPublished = match.results_published || match.status === 'finished';
 
-  const handleVote = async (playerId, voteType) => {
-    if (isVotingClosed) {
-      toast.error('Voting is closed for this match');
-      return;
-    }
-    
-    try {
-      await castVote.mutateAsync({ matchId: id, playerId, voteType });
-      toast.success(`Voted ${voteType}!`, {
-        className: 'bg-primary text-primary-foreground border-primary/20 neon-glow',
-      });
-    } catch (error) {
-      // Handle both demo error and Supabase unique constraint error (23505)
-      if (error.message === 'ALREADY_VOTED' || error.code === '23505') {
-        toast.error('You have already voted for this player', {
-          className: 'bg-destructive text-white border-destructive/20 shadow-lg font-bold',
-        });
-      } else {
-        toast.error('Failed to cast vote. Try again.', {
-          className: 'bg-destructive text-white border-destructive/20 shadow-lg font-bold',
-        });
-      }
-    }
-  };
+ const handleVote = async (playerId, voteType) => {
+  // 1. Check if voting is closed
+  if (isVotingClosed) {
+    toast.error('Voting is closed for this match');
+    return;
+  }
 
+  // 2. CHECK FOR GUEST/DEMO USER HERE
+  // This catches the "demo-user" string before it hits Supabase
+  if (!user || user.id === 'demo-user') {
+    toast.error('Please login to vote!', {
+      className: 'bg-primary text-primary-foreground border-primary/20 shadow-lg font-bold',
+    });
+    return; // Stop the function here
+  }
+  
+  try {
+    // This will only run if user.id is a real UUID
+    await castVote.mutateAsync({ matchId: id, playerId, voteType });
+    toast.success(`Voted ${voteType}!`, {
+      className: 'bg-primary text-primary-foreground border-primary/20 neon-glow',
+    });
+  } catch (error) {
+    if (error.message === 'ALREADY_VOTED' || error.code === '23505') {
+      toast.error('You have already voted for this player');
+    } else {
+      toast.error('Failed to cast vote. Try again.');
+    }
+  }
+};
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
       <div className="max-w-2xl mx-auto p-4 pb-24">

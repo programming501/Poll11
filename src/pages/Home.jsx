@@ -12,13 +12,14 @@ const Home = () => {
   const { data: matches, isLoading, error } = useMatches();
   const { signOut } = useAuth();
 
-  // Filter for upcoming matches and limit to 3
+  // Filter for upcoming matches and show the full Matchweek (up to 12)
   const upcomingMatches = matches
     ?.filter(m => {
       const votingCloses = new Date(m.voting_closes_at);
       return new Date() < votingCloses;
     })
-    .slice(0, 3) || [];
+    .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+    .slice(0, 12) || [];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -30,14 +31,7 @@ const Home = () => {
             </div>
             <h1 className="text-3xl font-display font-black tracking-tighter neon-text">Poll 11</h1>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={signOut}
-            className="rounded-2xl glass hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+         
         </div>
         
         <div className="space-y-2 animate-in slide-in-from-left duration-700">
@@ -52,7 +46,6 @@ const Home = () => {
       </header>
 
       <main className="px-6 space-y-12">
-        {/* League Card with Matches Inside */}
         <section className="animate-in fade-in slide-in-from-bottom duration-1000">
           <div className="vibe-card p-8 group cursor-default space-y-10">
             <div className="relative z-10 space-y-6">
@@ -77,24 +70,24 @@ const Home = () => {
               </div>
             </div>
 
-            {/* Matches Grid Inside League Card */}
             <div className="space-y-6 pt-6 border-t border-white/5">
               <div className="flex items-center gap-2">
                 <LayoutGrid className="w-4 h-4 text-primary opacity-50" />
                 <span className="text-[10px] font-display font-black uppercase tracking-[0.2em] opacity-40">Upcoming Fixtures</span>
               </div>
 
-              <div className="grid gap-6">
+              {/* Grid layout for more matches */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {isLoading ? (
-                  Array.from({ length: 2 }).map((_, i) => (
+                  Array.from({ length: 4 }).map((_, i) => (
                     <Skeleton key={i} className="h-[280px] w-full rounded-[2.5rem] bg-slate-800/30" />
                   ))
                 ) : error ? (
-                  <div className="py-12 text-center glass rounded-[2.5rem]">
+                  <div className="col-span-full py-12 text-center glass rounded-[2.5rem]">
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Failed to load matches</p>
                   </div>
                 ) : upcomingMatches.length === 0 ? (
-                  <div className="py-12 text-center glass rounded-[2.5rem]">
+                  <div className="col-span-full py-12 text-center glass rounded-[2.5rem]">
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">No matches scheduled</p>
                   </div>
                 ) : (
@@ -111,4 +104,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Home;    
