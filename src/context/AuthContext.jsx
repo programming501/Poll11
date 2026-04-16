@@ -1,7 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-const AuthContext = createContext({});
+const AuthContext = createContext({
+  user: null,
+  loading: true,
+  signOut: async () => {},
+  signInAsGuest: () => {},
+  signInWithMagicLink: async () => ({ error: null }),
+  isDemo: false,
+  isGuest: false,
+});
 
 const GUEST_USER = { id: 'demo-user', email: 'guest@example.com' };
 
@@ -53,8 +61,10 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const isGuest = user?.id === GUEST_USER.id;
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, signInAsGuest, signInWithMagicLink, isDemo: !supabase }}>
+    <AuthContext.Provider value={{ user, loading, signOut, signInAsGuest, signInWithMagicLink, isDemo: !supabase, isGuest }}>
       {children}
     </AuthContext.Provider>
   );
