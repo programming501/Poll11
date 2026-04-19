@@ -19,7 +19,7 @@ const Results = () => {
   const { data: matches } = useMatches();
   const match = matches?.find(m => m.id === id);
   
-  const { data: players, isLoading: loadingPlayers } = usePlayers(id);
+  const { data: players, isLoading: loadingPlayers } = usePlayers(match);
   const { data: results, isLoading: loadingResults } = useResults(id);
   
   const votingCloses = match ? new Date(match.voting_closes_at) : null;
