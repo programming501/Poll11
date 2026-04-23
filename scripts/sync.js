@@ -27,8 +27,10 @@ function toUUID(id) {
 // Generates a unique player ID per match
 // Same player in two different matches gets two different rows
 function playerMatchId(playerId, matchId) {
-  const playerHex = playerId.toString(16).padStart(8, '0');
-  const matchHex = matchId.toString(16).padStart(8, '0');
+  // Pad player ID to 8 chars, match ID to 8 chars
+  // Both sliced to ensure they never exceed their section length
+  const playerHex = playerId.toString(16).padStart(8, '0').slice(-8);
+  const matchHex = matchId.toString(16).padStart(8, '0').slice(-8);
   return `${playerHex}-${matchHex}-0000-0000-000000000000`;
 }
 

@@ -21,7 +21,9 @@ const Match = () => {
   const match = matches?.find(m => m.id === id);
   
   // 3. Pass match safely to hooks
-  const { data: players, isLoading: loadingPlayers } = usePlayers(match);
+  const { data: players, isLoading: loadingPlayers } = usePlayers(
+  showAway ? match.away_team : match.home_team
+);
   const { data: userVotes } = useUserVotes(id);
   const castVote = useCastVote();
 
