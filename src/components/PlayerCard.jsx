@@ -15,8 +15,18 @@ const PlayerCard = ({ player, userVote, onVote, disabled }) => {
     )}>
       <div className="flex items-center gap-4 sm:gap-5 min-w-0">
         <div className="relative flex-shrink-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-background flex items-center justify-center text-[9px] sm:text-[10px] font-display font-black opacity-40 border border-white/5 group-hover:border-primary/30 transition-colors">
-            <span>{player.position?.substring(0, 3) || 'N/A'}</span>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-background flex items-center justify-center border border-white/5 group-hover:border-primary/30 transition-colors overflow-hidden">
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Football icon */}
+              <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6 text-white/40 group-hover:text-primary/60 transition-colors" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10" strokeDasharray="2 2" />
+                <path d="M12 2a10 10 0 0 1 0 20" />
+                <path d="M2 12h20" />
+                <path d="M4.93 4.93l14.14 14.14" />
+                <path d="M19.07 4.93L4.93 19.07" />
+                <circle cx="12" cy="12" r="2" fill="currentColor" />
+              </svg>
+            </div>
           </div>
           {hasVoted && (
             <div className={cn(
