@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../context/AuthContext';
 import MatchCard from '../components/MatchCard';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Trophy, LayoutGrid, LogOut } from 'lucide-react';
 
 const Home = () => {
+  const navigate = useNavigate();
   const { data: matches, isLoading, error } = useMatches();
   const { signOut } = useAuth();
 
@@ -47,7 +48,12 @@ const Home = () => {
 
       <main className="px-6 space-y-12">
         <section className="animate-in fade-in slide-in-from-bottom duration-1000">
-          <div className="vibe-card p-8 group cursor-default space-y-10">
+          <div
+            className="vibe-card p-8 group cursor-pointer space-y-10 hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/league')}
+            tabIndex={0}
+            role="button"
+          >
             <div className="relative z-10 space-y-6">
               <div className="flex justify-between items-start">
                 <div className="space-y-6">
@@ -63,40 +69,12 @@ const Home = () => {
                   <Trophy className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              
               <div className="flex items-center gap-2 text-[10px] font-display font-black uppercase tracking-widest text-primary">
                 <span>{upcomingMatches.length} Matches Open</span>
                 <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
               </div>
             </div>
 
-            <div className="space-y-6 pt-6 border-t border-white/5">
-              <div className="flex items-center gap-2">
-                <LayoutGrid className="w-4 h-4 text-primary opacity-50" />
-                <span className="text-[10px] font-display font-black uppercase tracking-[0.2em] opacity-40">Upcoming Fixtures</span>
-              </div>
-
-              {/* Grid layout for more matches */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {isLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[280px] w-full rounded-[2.5rem] bg-slate-800/30" />
-                  ))
-                ) : error ? (
-                  <div className="col-span-full py-12 text-center glass rounded-[2.5rem]">
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Failed to load matches</p>
-                  </div>
-                ) : upcomingMatches.length === 0 ? (
-                  <div className="col-span-full py-12 text-center glass rounded-[2.5rem]">
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">No matches scheduled</p>
-                  </div>
-                ) : (
-                  upcomingMatches.map((match) => (
-                    <MatchCard key={match.id} match={match} />
-                  ))
-                )}
-              </div>
-            </div>
           </div>
         </section>
       </main>

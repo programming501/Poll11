@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Match from './pages/Match';
 import Results from './pages/Results';
 import ResultsList from './pages/ResultsList';
+import LeagueMatches from './pages/LeagueMatches';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Home as HomeIcon, Trophy, User } from 'lucide-react';
@@ -99,6 +100,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Home />} />
+              <Route path="/league" element={<LeagueMatches />} />
               <Route path="/match/:id" element={<ProtectedRoute><Match /></ProtectedRoute>} />
               <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
               <Route path="/results" element={<ProtectedRoute><ResultsList /></ProtectedRoute>} />

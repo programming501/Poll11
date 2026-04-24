@@ -14,25 +14,28 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const Results = () => {
+
   const { id } = useParams();
   const [showAway, setShowAway] = useState(false);
   const { data: matches } = useMatches();
   const match = matches?.find(m => m.id === id);
-  
-  const { data: players, isLoading: loadingPlayers } = usePlayers(match);
+
+  // Move currentTeam above its first usage
+  const currentTeam = showAway ? match?.away_team : match?.home_team;
+  const { data: players, isLoading: loadingPlayers } = usePlayers(currentTeam);
+
   const { data: results, isLoading: loadingResults } = useResults(id);
-  
+
   const votingCloses = match ? new Date(match.voting_closes_at) : null;
   const countdown = useCountdown(match?.voting_closes_at);
   const now = new Date();
-  
+
   // Results are locked until voting_closes_at (1hr before kickoff)
   const isLocked = votingCloses && now < votingCloses;
 
   if (!match && matches) return <div className="p-8 text-center glass m-6 rounded-3xl">Match not found.</div>;
   if (!match) return null;
 
-  const currentTeam = showAway ? match.away_team : match.home_team;
   const filteredPlayers = players?.filter(p => p.team === currentTeam);
 
   return (

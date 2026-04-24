@@ -26,12 +26,24 @@ function toUUID(id) {
 
 // Generates a unique player ID per match
 // Same player in two different matches gets two different rows
-function playerMatchId(playerId, matchId) {
-  // Pad player ID to 8 chars, match ID to 8 chars
-  // Both sliced to ensure they never exceed their section length
-  const playerHex = playerId.toString(16).padStart(8, '0').slice(-8);
-  const matchHex = matchId.toString(16).padStart(8, '0').slice(-8);
-  return `${playerHex}-${matchHex}-0000-0000-000000000000`;
+function playerMatchId(playerId, matchUUID) {
+  const p = parseInt(playerId, 10);
+  const matchHex = matchUUID.replace(/-/g, '').slice(-12);
+  const m = parseInt(matchHex, 16);
+  
+  // Create deterministic seed - use both IDs to create 32-char hex
+  const pHex = p.toString(16).padStart(8, '0');
+  const mHex = m.toString(16).padStart(24, '0').slice(0, 24);
+  const hex = pHex + mHex;
+  
+  // UUID v4: 8-4-4-12 chars
+  const seg1 = hex.slice(0, 8);
+  const seg2 = hex.slice(8, 12);
+  const seg3 = '4' + hex.slice(9, 12);
+  const seg4 = '8' + hex.slice(12, 15);
+  const seg5 = (hex.slice(15) + '000000000000').slice(0, 12);
+  
+  return `${seg1}-${seg2}-${seg3}-${seg4}-${seg5}`;
 }
 
 async function syncMatches() {
@@ -117,7 +129,7 @@ async function syncMatches() {
       }
 
       const players = teamData.squad.map(p => ({
-        id: playerMatchId(p.id, match.id),
+        id: playerMatchId(p.id, matchUUID),
         match_id: matchUUID,
         name: p.name,
         team: team.name,
