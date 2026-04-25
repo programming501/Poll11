@@ -16,21 +16,30 @@ const SponsorSection = () => {
         <div className="h-px flex-1 bg-white/5" />
       </div>
       
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex flex-wrap justify-center items-center gap-8">
         {sponsors.map(sponsor => (
           <a 
             key={sponsor.id} 
-            href={sponsor.link_url} 
+            href={sponsor.link_url || '#'} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="opacity-40 hover:opacity-100 transition-opacity duration-300"
+            className="opacity-60 hover:opacity-100 transition-all duration-300 transform hover:scale-105"
           >
-            <img 
-              src={sponsor.image_url} 
-              alt={sponsor.name} 
-              className="h-8 object-contain grayscale"
-              referrerPolicy="no-referrer"
-            />
+            {sponsor.image_url ? (
+              <img 
+                src={sponsor.image_url} 
+                alt={sponsor.name || 'Sponsor'} 
+                className="h-20 max-w-[240px] object-contain shadow-lg rounded-xl border border-white/10 bg-white/5"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : null}
+            {/* Fallback text if image fails */}
+            <span className="hidden text-sm font-bold text-white/60">
+              {sponsor.name}
+            </span>
           </a>
         ))}
       </div>
