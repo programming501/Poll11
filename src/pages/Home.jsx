@@ -69,10 +69,6 @@ const Home = () => {
                   <Trophy className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-display font-black uppercase tracking-widest text-primary">
-                <span>{upcomingMatches.length} Matches Open</span>
-                <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-              </div>
             </div>
 
           </div>
