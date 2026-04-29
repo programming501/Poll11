@@ -27,9 +27,7 @@ const Home = () => {
       <header className="px-6 pt-16 pb-12 space-y-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-primary p-2.5 rounded-2xl shadow-lg shadow-primary/30 animate-in fade-in zoom-in duration-700">
-              <Trophy className="text-primary-foreground w-6 h-6" />
-            </div>
+            <img src="/image.png" alt="Poll 11 Logo" className="w-16 h-16 object-contain drop-shadow-lg" />
             <h1 className="text-3xl font-display font-black tracking-tighter neon-text">Poll 11</h1>
           </div>
          

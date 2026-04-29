@@ -42,8 +42,8 @@ const Login = () => {
       <div className="w-full max-w-md space-y-12">
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center space-y-6">
-          <div className="bg-primary p-4 rounded-[2rem] shadow-2xl shadow-primary/40 animate-in zoom-in duration-1000">
-            <Trophy className="text-primary-foreground w-12 h-12" />
+          <div className="flex items-center gap-3">
+             <img src="/image.png" alt="Poll 11 Logo" className="w-16 h-16 object-contain drop-shadow-lg" />
           </div>
           <div className="space-y-2">
             <h1 className="text-5xl font-display font-black tracking-tighter leading-none neon-text">
