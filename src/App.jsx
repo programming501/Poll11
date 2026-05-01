@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import InstallBanner from './components/InstallBanner';
 import Home from './pages/Home';
 import Match from './pages/Match';
 import Results from './pages/Results';
@@ -110,6 +111,7 @@ function App() {
             </footer>
             <BottomNav />
             <Toaster position="top-center" expand={false} richColors closeButton />
+            <InstallBanner />
           </div>
         </AuthProvider>
       </Router>
