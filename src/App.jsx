@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import InstallBanner from './components/InstallBanner';
@@ -9,10 +9,10 @@ import Results from './pages/Results';
 import ResultsList from './pages/ResultsList';
 import LeagueMatches from './pages/LeagueMatches';
 import Login from './pages/Login';
+import DailyPoll from './pages/DailyPoll';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Home as HomeIcon, Trophy, User } from 'lucide-react';
+import { Home as HomeIcon, Trophy, CalendarDays } from 'lucide-react';
 import { cn } from './lib/utils';
-import { Navigate } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 
@@ -42,12 +42,13 @@ const BottomNav = () => {
 
   const navItems = [
     { icon: HomeIcon, label: 'Home', path: '/' },
+    { icon: CalendarDays, label: 'Daily Poll', path: '/daily-poll' },
     { icon: Trophy, label: 'Results', path: '/results' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-2xl border-t border-white/5 px-6 py-4 z-50">
-      <div className="max-w-md mx-auto flex items-center justify-around">
+    <nav className="fixed inset-x-4 bottom-4 z-50 rounded-[2rem] border-2 border-white/15 bg-slate-950/95 px-4 py-3 shadow-[0_26px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-3xl ring-1 ring-white/10 sm:bottom-5">
+      <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -55,12 +56,14 @@ const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center gap-1.5 transition-all duration-300",
-                isActive ? "text-primary" : "text-slate-500 hover:text-foreground"
+                "flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[1.75rem] px-3 py-3 transition-all duration-300",
+                isActive
+                  ? "bg-slate-900/95 text-primary shadow-[0_18px_50px_rgba(57,255,20,0.16)]"
+                  : "text-slate-400 hover:text-foreground hover:bg-slate-900/70"
               )}
             >
-              <item.icon className={cn("w-5 h-5", isActive && "drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]")} />
-              <span className="text-[9px] font-display font-black uppercase tracking-[0.2em]">{item.label}</span>
+              <item.icon className={cn("w-5 h-5", isActive && "drop-shadow-[0_0_12px_rgba(57,255,20,0.65)]")} />
+              <span className="text-[9px] font-display font-black uppercase tracking-[0.2em] leading-none">{item.label}</span>
             </Link>
           );
         })}
@@ -96,12 +99,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+          <div className="min-h-screen pb-28 bg-background text-foreground font-sans selection:bg-primary/30">
             <GuestSignupBanner />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Home />} />
               <Route path="/league" element={<LeagueMatches />} />
+              <Route path="/daily-poll" element={<DailyPoll />} />
               <Route path="/match/:id" element={<ProtectedRoute><Match /></ProtectedRoute>} />
               <Route path="/results/:id" element={<ProtectedRoute><Results /></ProtectedRoute>} />
               <Route path="/results" element={<ProtectedRoute><ResultsList /></ProtectedRoute>} />
