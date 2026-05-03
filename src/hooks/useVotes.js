@@ -75,7 +75,6 @@ export const useCastVote = () => {
     onError: (err, variables, context) => {
       queryClient.setQueryData(['user-votes', variables.matchId, user?.id], context?.previousVotes);
       
-      // Handled in handleVote component logic, but added here for safety
       if (err.message === 'ALREADY_VOTED') {
         toast.error('You have already cast your vote for this player.');
       } else if (err.message === 'AUTH_REQUIRED') {
@@ -83,6 +82,9 @@ export const useCastVote = () => {
       } else {
         toast.error('Failed to cast vote. Try again.');
       }
+    },
+    onSuccess: () => {
+      toast.success('Vote counted!');
     },
     onSettled: (data, error, variables) => {
       if (user?.id !== 'demo-user') {
