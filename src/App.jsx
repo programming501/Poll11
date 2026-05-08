@@ -47,7 +47,10 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed inset-x-4 bottom-4 z-50 rounded-[2rem] border-2 border-white/15 bg-slate-950/95 px-4 py-3 shadow-[0_26px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-3xl ring-1 ring-white/10 sm:bottom-5">
+
+
+
+<nav className="fixed inset-x-4 bottom-4 z-50 rounded-[2rem] border-2 border-white/15 bg-slate-950/95 px-4 py-3 shadow-[0_26px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-3xl ring-1 ring-white/10 sm:bottom-5">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;

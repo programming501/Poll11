@@ -36,7 +36,7 @@ const Home = () => {
         <div className="space-y-2 animate-in slide-in-from-left duration-700">
           <h2 className="text-5xl font-display font-black tracking-tighter leading-[0.9] lg:text-7xl">
             DECIDE THE <br />
-            <span className="text-primary">STARTING 11</span>
+            <span className="text-primary">STARTING 11.</span>
           </h2>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
             Premier League Matchweek
