@@ -17,6 +17,16 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { persistSession: false, autoRefreshToken: false }
 });
 
+const syncCompetitions = (process.env.SYNC_COMPETITIONS || 'PL,WC')
+  .split(',')
+  .map((code) => code.trim().toUpperCase())
+  .filter(Boolean);
+
+const competitionLabels = {
+  PL: 'Premier League',
+  WC: 'FIFA World Cup',
+};
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function toUUID(id) {
@@ -54,92 +64,98 @@ async function syncMatches() {
   const dateFrom = now.toISOString().split('T')[0];
   const dateTo = nextWeek.toISOString().split('T')[0];
 
-  console.log(`Syncing: ${dateFrom} to ${dateTo}`);
+  console.log(`Syncing competitions: ${syncCompetitions.join(', ')} from ${dateFrom} to ${dateTo}`);
 
-  const response = await fetch(
-    `https://api.football-data.org/v4/competitions/PL/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`,
-    { headers: { 'X-Auth-Token': footballApiKey } }
-  );
+  for (const code of syncCompetitions) {
+    const label = competitionLabels[code] || code;
 
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${await response.text()}`);
-  }
+    const response = await fetch(
+      `https://api.football-data.org/v4/competitions/${code}/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+      { headers: { 'X-Auth-Token': footballApiKey } }
+    );
 
-  const { matches = [] } = await response.json();
-  console.log(`Found ${matches.length} matches`);
-  if (matches.length === 0) return;
+    if (!response.ok) {
+      console.warn(`Skipped ${label}: ${response.status} ${await response.text()}`);
+      continue;
+    }
 
-  // Upsert matches
-  const { error: matchError } = await supabase
-    .from('matches')
-    .upsert(matches.map(m => ({
-      id: toUUID(m.id),
-      home_team: m.homeTeam.name,
-      away_team: m.awayTeam.name,
-      match_date: m.utcDate,
-      voting_closes_at: new Date(
-        new Date(m.utcDate).getTime() - 60 * 60 * 1000
-      ).toISOString(),
-      status: 'upcoming',
-      competition: 'Premier League',
-    })));
+    const { matches = [] } = await response.json();
+    console.log(`Found ${matches.length} ${label} matches`);
 
-  if (matchError) throw matchError;
-  console.log(`Upserted ${matches.length} matches`);
+    if (matches.length === 0) {
+      continue;
+    }
 
-  // For each match insert players for both teams WITH match_id
-  for (const match of matches) {
-    const matchUUID = toUUID(match.id);
-    const teams = [
-      { id: match.homeTeam.id, name: match.homeTeam.name },
-      { id: match.awayTeam.id, name: match.awayTeam.name },
-    ];
+    const { error: matchError } = await supabase
+      .from('matches')
+      .upsert(matches.map((m) => ({
+        id: toUUID(m.id),
+        home_team: m.homeTeam.name,
+        away_team: m.awayTeam.name,
+        match_date: m.utcDate,
+        voting_closes_at: new Date(new Date(m.utcDate).getTime() - 60 * 60 * 1000).toISOString(),
+        status: m.status === 'FINISHED' ? 'finished' : 'upcoming',
+        competition: label,
+      })));
 
-    for (const team of teams) {
-      // Skip if players already exist for this match + team
-      const { data: existing } = await supabase
-        .from('players')
-        .select('id')
-        .eq('match_id', matchUUID)
-        .eq('team', team.name)
-        .limit(1);
+    if (matchError) {
+      throw matchError;
+    }
 
-      if (existing && existing.length > 0) {
-        console.log(`Already have players for ${team.name} — skipping`);
-        continue;
-      }
+    console.log(`Upserted ${matches.length} ${label} matches`);
 
-      console.log(`Waiting 7s... then fetching ${team.name}`);
-      await sleep(7000);
+    for (const match of matches) {
+      const matchUUID = toUUID(match.id);
+      const teams = [
+        { id: match.homeTeam.id, name: match.homeTeam.name },
+        { id: match.awayTeam.id, name: match.awayTeam.name },
+      ];
 
-      const res = await fetch(
-        `https://api.football-data.org/v4/teams/${team.id}`,
-        { headers: { 'X-Auth-Token': footballApiKey } }
-      );
+      for (const team of teams) {
+        const { data: existing } = await supabase
+          .from('players')
+          .select('id')
+          .eq('match_id', matchUUID)
+          .eq('team', team.name)
+          .limit(1);
 
-      if (!res.ok) {
-        console.warn(`Skipped ${team.name}`);
-        continue;
-      }
+        if (existing && existing.length > 0) {
+          console.log(`Already have players for ${team.name} (${label}) — skipping`);
+          continue;
+        }
 
-      const teamData = await res.json();
-      if (!teamData.squad?.length) {
-        console.warn(`No squad for ${team.name}`);
-        continue;
-      }
+        console.log(`Waiting 7s... then fetching ${team.name} (${label})`);
+        await sleep(7000);
 
-      const players = teamData.squad.map(p => ({
-        id: playerMatchId(p.id, matchUUID),
-        match_id: matchUUID,
-        name: p.name,
-        team: team.name,
-      }));
+        const res = await fetch(
+          `https://api.football-data.org/v4/teams/${team.id}`,
+          { headers: { 'X-Auth-Token': footballApiKey } }
+        );
 
-      const { error } = await supabase.from('players').upsert(players);
-      if (error) {
-        console.error(`Player error for ${team.name}:`, error.message);
-      } else {
-        console.log(`Inserted ${players.length} players for ${team.name}`);
+        if (!res.ok) {
+          console.warn(`Skipped ${team.name} (${label})`);
+          continue;
+        }
+
+        const teamData = await res.json();
+        if (!teamData.squad?.length) {
+          console.warn(`No squad for ${team.name} (${label})`);
+          continue;
+        }
+
+        const players = teamData.squad.map((p) => ({
+          id: playerMatchId(p.id, matchUUID),
+          match_id: matchUUID,
+          name: p.name,
+          team: team.name,
+        }));
+
+        const { error } = await supabase.from('players').upsert(players);
+        if (error) {
+          console.error(`Player error for ${team.name} (${label}):`, error.message);
+        } else {
+          console.log(`Inserted ${players.length} players for ${team.name} (${label})`);
+        }
       }
     }
   }
