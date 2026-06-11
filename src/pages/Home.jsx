@@ -55,7 +55,7 @@ const Home = () => {
               </div>
             </div>
             <div className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
-              Results and old fixtures are archived. This section is intentionally closed for now.
+              No Fixtures Available
             </div>
           </article>
 
@@ -66,7 +66,7 @@ const Home = () => {
                   New • FIFA World Cup 26
                 </span>
                 <div>
-                  <h3 className="text-3xl font-display font-black tracking-tighter">WORLD CUP MODE</h3>
+                  <h3 className="text-3xl font-display font-black tracking-tighter">WORLD CUP 2026</h3>
                   <p className="text-slate-400 text-sm font-medium">Fresh fixtures, big matchups, and global football energy.</p>
                 </div>
               </div>
@@ -74,44 +74,27 @@ const Home = () => {
                 <Globe2 className="w-7 h-7 text-primary" />
               </div>
             </div>
+            
 
-            <div className="grid gap-3">
-              {worldCupMatches.length > 0 ? (
-                worldCupMatches.map((fixture) => (
-                  <button
-                    key={fixture.id}
-                    type="button"
-                    className="rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-4 text-left transition duration-300 hover:border-primary/30 hover:bg-slate-900"
-                    onClick={() => navigate('/league')}
-                  >
-                    <div className="flex items-center justify-between gap-3 text-[10px] font-display font-black uppercase tracking-[0.22em] text-slate-400">
-                      <span>World Cup</span>
-                      <span className="text-primary">{new Date(fixture.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-base font-black text-white">{fixture.home_team}</p>
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">vs</p>
-                        <p className="text-base font-black text-white">{fixture.away_team}</p>
-                      </div>
-                      <div className="rounded-2xl border border-primary/20 bg-primary/10 px-3 py-2 text-right text-[10px] uppercase tracking-[0.18em] text-primary">
-                        <CalendarDays className="mb-1 h-4 w-4" />
-                        {new Date(fixture.match_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                      </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="rounded-[1.75rem] border border-dashed border-white/10 bg-slate-950/60 p-5 text-sm text-slate-400">
-                  No World Cup fixtures are available yet. Run the sync script to populate the competition data.
+            <button
+              type="button"
+              onClick={() => navigate('/league')}
+              className="w-full rounded-[1.75rem] border border-primary/20 bg-gradient-to-r from-primary/15 via-primary/10 to-emerald-400/10 p-5 text-left text-slate-100 shadow-[0_18px_40px_rgba(57,255,20,0.10)] transition duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-gradient-to-r hover:from-primary/20 hover:via-primary/10 hover:to-emerald-400/15 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  
+                  <p className="text-[10px] font-display font-black uppercase tracking-[0.22em] text-primary">Open fixtures</p>
+                  <p className="text-sm text-slate-200">Click to view the full World Cup match cards.</p>
                 </div>
-              )}
-            </div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-2 text-[10px] font-display font-black uppercase tracking-[0.22em] text-primary shadow-[0_10px_30px_rgba(57,255,20,0.12)]">
+                  Vote now
+                  <CalendarDays className="h-4 w-4" />
+                </span>
+              </div>
+            </button>
 
-            <div className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-4 py-3 text-xs uppercase tracking-[0.18em] text-slate-300">
-              <span>{upcomingCount} upcoming fixture(s) available</span>
-              <span className="text-primary">World Cup 26</span>
-            </div>
+            
           </article>
         </section>
       </main>
