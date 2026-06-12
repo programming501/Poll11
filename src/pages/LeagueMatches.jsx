@@ -33,11 +33,11 @@ const LeagueMatches = () => {
         
         <div className="space-y-2 animate-in slide-in-from-left duration-700">
           <Badge className="bg-primary/20 text-primary border-none px-3 py-1 rounded-full text-[10px] font-display font-black uppercase tracking-widest">
-            Active League
+            Active 
           </Badge>
           <h2 className="text-5xl font-display font-black tracking-tighter leading-[0.9] lg:text-7xl">
-            PREMIER <br />
-            <span className="text-primary">LEAGUE</span>
+            WORLD <br />
+            <span className="text-primary">CUP</span>
           </h2>
           <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">
             Vote for the upcoming fixtures
