@@ -7,6 +7,7 @@ const AuthContext = createContext({
   signOut: async () => {},
   signInAsGuest: () => {},
   signInWithMagicLink: async () => ({ error: null }),
+  signInWithGoogle: async () => ({ error: null }),
   isDemo: false,
   isGuest: false,
 });
@@ -61,10 +62,23 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const signInWithGoogle = async () => {
+    if (!supabase) {
+      return { error: new Error('Supabase is not configured. Please check your environment variables.') };
+    }
+
+    return await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+  };
+
   const isGuest = user?.id === GUEST_USER.id;
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut, signInAsGuest, signInWithMagicLink, isDemo: !supabase, isGuest }}>
+    <AuthContext.Provider value={{ user, loading, signOut, signInAsGuest, signInWithMagicLink, signInWithGoogle, isDemo: !supabase, isGuest }}>
       {children}
     </AuthContext.Provider>
   );

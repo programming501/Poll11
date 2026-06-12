@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signInWithMagicLink, signInAsGuest } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { signInWithMagicLink, signInWithGoogle, signInAsGuest } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -28,6 +29,17 @@ const Login = () => {
       toast.error(error.message || 'Failed to send magic link');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error.message || 'Failed to start Google sign-in');
+      setGoogleLoading(false);
     }
   };
 
@@ -97,6 +109,22 @@ const Login = () => {
               <span className="bg-slate-900 px-4 text-slate-500">Or continue with</span>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={googleLoading}
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-white text-slate-900 shadow-sm transition-all hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {googleLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-slate-700" />
+            ) : (
+              <>
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
+                <span className="text-sm font-semibold">Sign in with Google</span>
+              </>
+            )}
+          </button>
 
           <Button
             variant="outline"
