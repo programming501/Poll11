@@ -58,11 +58,11 @@ function playerMatchId(playerId, matchUUID) {
 
 async function syncMatches() {
   const now = new Date();
-  const nextWeek = new Date();
-  nextWeek.setDate(now.getDate() + 7);
+const nextWeek = new Date();
+nextWeek.setDate(now.getDate() + 7);
 
-  const dateFrom = now.toISOString().split('T')[0];
-  const dateTo = nextWeek.toISOString().split('T')[0];
+const dateFrom = now.toISOString().split('T')[0];
+const dateTo = nextWeek.toISOString().split('T')[0];
 
   console.log(`Syncing competitions: ${syncCompetitions.join(', ')} from ${dateFrom} to ${dateTo}`);
 
@@ -86,15 +86,23 @@ async function syncMatches() {
       continue;
     }
 
+    // Filter out matches with missing team data
+    const validMatches = matches.filter(m => m.homeTeam?.name && m.awayTeam?.name);
+    
+    if (validMatches.length === 0) {
+      console.log(`No valid matches (missing team data) for ${label}`);
+      continue;
+    }
+
     const { error: matchError } = await supabase
       .from('matches')
-      .upsert(matches.map((m) => ({
+      .upsert(validMatches.map((m) => ({
         id: toUUID(m.id),
         home_team: m.homeTeam.name,
         away_team: m.awayTeam.name,
         match_date: m.utcDate,
         voting_closes_at: new Date(new Date(m.utcDate).getTime() - 60 * 60 * 1000).toISOString(),
-        status: m.status === 'FINISHED' ? 'finished' : 'upcoming',
+        status: 'upcoming',
         competition: label,
       })));
 
@@ -102,9 +110,9 @@ async function syncMatches() {
       throw matchError;
     }
 
-    console.log(`Upserted ${matches.length} ${label} matches`);
+    console.log(`Upserted ${validMatches.length} ${label} matches`);
 
-    for (const match of matches) {
+    for (const match of validMatches) {
       const matchUUID = toUUID(match.id);
       const teams = [
         { id: match.homeTeam.id, name: match.homeTeam.name },

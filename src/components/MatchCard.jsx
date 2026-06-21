@@ -27,10 +27,10 @@ const MatchCard = ({ match, hideButton = false }) => {
             <div className="bg-primary/10 p-2 rounded-xl border border-primary/20">
               
             </div>
-            <span className="text-[10px] font-display font-black uppercase tracking-[0.2em] opacity-40">Premier League</span>
+            <span className="text-[10px] font-display font-black uppercase tracking-[0.2em] opacity-40">{match.competition || 'Competition'}</span>
           </div>
           <Badge variant="outline" className="border-white/10 text-foreground bg-white/5 font-mono text-[10px] px-3 py-1 rounded-full">
-            {format(kickoff, 'dd MMM, HH:mm', { locale: enIN })}
+            <Timer className="w-3.5 h-3.5 text-primary opacity-40" />
           </Badge>
         </div>
 
